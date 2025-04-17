@@ -21,7 +21,7 @@ use Tourze\UserIDMobileBundle\Repository\MobileIdentityRepository;
 
 #[AsPermission(title: '手机身份')]
 #[ORM\Entity(repositoryClass: MobileIdentityRepository::class)]
-#[ORM\Table(name: 'ims_user_identity_mobile', options: ['comment' => '用户身份-手机号码'])]
+#[ORM\Table(name: 'ims_user_identity_mobile', options: ['comment' => '手机身份'])]
 class MobileIdentity implements UserIdentityInterface
 {
     public const IDENTITY_TYPE = 'mobile';
