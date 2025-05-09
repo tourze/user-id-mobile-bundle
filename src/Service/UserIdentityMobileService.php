@@ -5,7 +5,7 @@ namespace Tourze\UserIDMobileBundle\Service;
 use Symfony\Component\DependencyInjection\Attribute\AsDecorator;
 use Symfony\Component\DependencyInjection\Attribute\AutowireDecorated;
 use Symfony\Component\Security\Core\User\UserInterface;
-use Tourze\UserIDBundle\Contracts\UserIdentityInterface;
+use Tourze\UserIDBundle\Contracts\IdentityInterface;
 use Tourze\UserIDBundle\Service\UserIdentityService;
 use Tourze\UserIDMobileBundle\Entity\MobileIdentity;
 use Tourze\UserIDMobileBundle\Repository\MobileIdentityRepository;
@@ -19,7 +19,7 @@ class UserIdentityMobileService implements UserIdentityService
     ) {
     }
 
-    public function findByType(string $type, string $value): ?UserIdentityInterface
+    public function findByType(string $type, string $value): ?IdentityInterface
     {
         // 手机号码
         if (MobileIdentity::IDENTITY_TYPE === $type) {
