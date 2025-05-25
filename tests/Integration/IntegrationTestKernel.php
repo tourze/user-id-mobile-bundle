@@ -33,6 +33,18 @@ class IntegrationTestKernel extends Kernel
         $container->loadFromExtension('framework', [
             'test' => true,
             'secret' => 'test',
+            'http_method_override' => false,
+            'handle_all_throwables' => true,
+            'validation' => [
+                'email_validation_mode' => 'html5',
+            ],
+            'php_errors' => [
+                'log' => true,
+            ],
+            'uid' => [
+                'default_uuid_version' => 7,
+                'time_based_uuid_version' => 7,
+            ],
         ]);
 
         $container->loadFromExtension('doctrine', [
@@ -43,6 +55,9 @@ class IntegrationTestKernel extends Kernel
             'orm' => [
                 'auto_generate_proxy_classes' => true,
                 'auto_mapping' => true,
+                'controller_resolver' => [
+                    'auto_mapping' => false,
+                ],
                 'mappings' => [
                     'UserIDMobileBundle' => [
                         'is_bundle' => true,
