@@ -134,6 +134,10 @@ class MobileIdentityTest extends TestCase
         $this->assertInstanceOf(\Traversable::class, $iterator);
         
         $items = iterator_to_array($iterator);
+        foreach ($items as $item) {
+            $this->assertInstanceOf(Identity::class, $item);
+        }
+
         $this->assertCount(1, $items);
         $this->assertInstanceOf(Identity::class, $items[0]);
         $this->assertSame('mobile', $items[0]->getType());
