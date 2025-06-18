@@ -9,14 +9,10 @@ use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
 use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
-use Tourze\EasyAdmin\Attribute\Column\ExportColumn;
-use Tourze\EasyAdmin\Attribute\Column\ListColumn;
-use Tourze\EasyAdmin\Attribute\Permission\AsPermission;
 use Tourze\UserIDBundle\Contracts\IdentityInterface;
 use Tourze\UserIDBundle\Model\Identity;
 use Tourze\UserIDMobileBundle\Repository\MobileIdentityRepository;
 
-#[AsPermission(title: '手机身份')]
 #[ORM\Entity(repositoryClass: MobileIdentityRepository::class)]
 #[ORM\Table(name: 'ims_user_identity_mobile', options: ['comment' => '手机身份'])]
 class MobileIdentity implements IdentityInterface
@@ -24,28 +20,21 @@ class MobileIdentity implements IdentityInterface
     use TimestampableAware;
     public const IDENTITY_TYPE = 'mobile';
 
-    #[ExportColumn]
-    #[ListColumn(order: -1, sorter: true)]
     #[ORM\Id]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
     #[ORM\CustomIdGenerator(SnowflakeIdGenerator::class)]
     #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
     private ?string $id = null;
 
-    #[ListColumn]
-    #[ORM\Column(length: 50, options: ['comment' => '手机号码'])]
     private string $mobileNumber;
 
-    #[ListColumn(title: '关联客户')]
     #[ORM\ManyToOne]
     private ?UserInterface $user = null;
 
     #[CreatedByColumn]
-    #[ORM\Column(nullable: true, options: ['comment' => '创建人'])]
     private ?string $createdBy = null;
 
     #[UpdatedByColumn]
-    #[ORM\Column(nullable: true, options: ['comment' => '更新人'])]
     private ?string $updatedBy = null;
 
     public function getId(): ?string

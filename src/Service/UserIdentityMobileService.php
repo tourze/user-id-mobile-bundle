@@ -24,7 +24,7 @@ class UserIdentityMobileService implements UserIdentityService
         // 手机号码
         if (MobileIdentity::IDENTITY_TYPE === $type) {
             $result = $this->mobileIdentityRepository?->findOneBy(['mobileNumber' => $value]);
-            if ($result) {
+            if ((bool) $result) {
                 return $result;
             }
         }

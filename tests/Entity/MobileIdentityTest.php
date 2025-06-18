@@ -74,7 +74,7 @@ class MobileIdentityTest extends TestCase
     public function testGetSetCreateTime(): void
     {
         $entity = new MobileIdentity();
-        $date = new \DateTime();
+        $date = new \DateTimeImmutable();
 
         $entity->setCreateTime($date);
         $this->assertSame($date, $entity->getCreateTime());
@@ -87,7 +87,7 @@ class MobileIdentityTest extends TestCase
     public function testGetSetUpdateTime(): void
     {
         $entity = new MobileIdentity();
-        $date = new \DateTime();
+        $date = new \DateTimeImmutable();
 
         $entity->setUpdateTime($date);
         $this->assertSame($date, $entity->getUpdateTime());
@@ -126,7 +126,7 @@ class MobileIdentityTest extends TestCase
         $idProperty->setValue($entity, '123456789');
 
         $entity->setMobileNumber('13800138000');
-        $date = new \DateTime('2023-01-01 12:00:00');
+        $date = new \DateTimeImmutable('2023-01-01 12:00:00');
         $entity->setCreateTime($date);
         $entity->setUpdateTime($date);
 
@@ -142,7 +142,6 @@ class MobileIdentityTest extends TestCase
         $this->assertSame('13800138000', $item->getIdentityValue());
 
         $extra = $item->getExtra();
-        $this->assertIsArray($extra);
         $this->assertArrayHasKey('createTime', $extra);
         $this->assertArrayHasKey('updateTime', $extra);
         $this->assertSame('2023-01-01 12:00:00', $extra['createTime']);
