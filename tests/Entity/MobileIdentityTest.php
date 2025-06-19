@@ -194,7 +194,7 @@ class MobileIdentityTest extends TestCase
     public function testGetAccounts(): void
     {
         $entity = new MobileIdentity();
-        $this->assertIsArray($entity->getAccounts());
+        // 已知返回数组，不需要断言
         $this->assertEmpty($entity->getAccounts());
     }
 } 

@@ -7,17 +7,17 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Tourze\DoctrineSnowflakeBundle\Service\SnowflakeIdGenerator;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
-use Tourze\DoctrineUserBundle\Attribute\CreatedByColumn;
-use Tourze\DoctrineUserBundle\Attribute\UpdatedByColumn;
+use Tourze\DoctrineUserBundle\Traits\BlameableAware;
 use Tourze\UserIDBundle\Contracts\IdentityInterface;
 use Tourze\UserIDBundle\Model\Identity;
 use Tourze\UserIDMobileBundle\Repository\MobileIdentityRepository;
 
 #[ORM\Entity(repositoryClass: MobileIdentityRepository::class)]
 #[ORM\Table(name: 'ims_user_identity_mobile', options: ['comment' => '手机身份'])]
-class MobileIdentity implements IdentityInterface
+class MobileIdentity implements IdentityInterface, \Stringable
 {
     use TimestampableAware;
+    use BlameableAware;
     public const IDENTITY_TYPE = 'mobile';
 
     #[ORM\Id]
@@ -26,44 +26,21 @@ class MobileIdentity implements IdentityInterface
     #[ORM\Column(type: Types::BIGINT, nullable: false, options: ['comment' => 'ID'])]
     private ?string $id = null;
 
+    #[ORM\Column(length: 20, nullable: false, options: ['comment' => '手机号码'])]
     private string $mobileNumber;
 
     #[ORM\ManyToOne]
     private ?UserInterface $user = null;
 
-    #[CreatedByColumn]
-    private ?string $createdBy = null;
-
-    #[UpdatedByColumn]
-    private ?string $updatedBy = null;
 
     public function getId(): ?string
     {
         return $this->id;
     }
 
-    public function setCreatedBy(?string $createdBy): self
+    public function __toString(): string
     {
-        $this->createdBy = $createdBy;
-
-        return $this;
-    }
-
-    public function getCreatedBy(): ?string
-    {
-        return $this->createdBy;
-    }
-
-    public function setUpdatedBy(?string $updatedBy): self
-    {
-        $this->updatedBy = $updatedBy;
-
-        return $this;
-    }
-
-    public function getUpdatedBy(): ?string
-    {
-        return $this->updatedBy;
+        return $this->mobileNumber ?? '';
     }
 
     public function getMobileNumber(): string
