@@ -154,13 +154,6 @@ class UserIdentityMobileServiceTest extends TestCase
         $this->assertCount(0, $items);
     }
 
-    /**
-     * @doesNotPerformAssertions
-     */
-    public function testFindByUser_whenRepositoryThrowsException(): void
-    {
-        $this->markTestSkipped('由于PHPUnit版本和mocking行为差异，此测试暂时跳过');
-    }
 
     public function testFindByUser_whenInnerServiceReturnsEmptyArray(): void
     {
