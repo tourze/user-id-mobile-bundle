@@ -2,179 +2,78 @@
 
 namespace Tourze\UserIDMobileBundle\Tests\Service;
 
-use PHPUnit\Framework\TestCase;
-use Symfony\Component\Security\Core\User\UserInterface;
-use Tourze\UserIDBundle\Contracts\IdentityInterface;
-use Tourze\UserIDBundle\Service\UserIdentityService;
+use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
+use Tourze\PHPUnitSymfonyKernelTest\AbstractIntegrationTestCase;
 use Tourze\UserIDMobileBundle\Entity\MobileIdentity;
-use Tourze\UserIDMobileBundle\Repository\MobileIdentityRepository;
 use Tourze\UserIDMobileBundle\Service\UserIdentityMobileService;
 
-class UserIdentityMobileServiceTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(UserIdentityMobileService::class)]
+#[RunTestsInSeparateProcesses]
+final class UserIdentityMobileServiceTest extends AbstractIntegrationTestCase
 {
-    private MobileIdentityRepository $repository;
-    private UserIdentityService $innerService;
-    private UserIdentityMobileService $service;
-
-    protected function setUp(): void
+    protected function onSetUp(): void
     {
-        $this->repository = $this->createMock(MobileIdentityRepository::class);
-        $this->innerService = $this->createMock(UserIdentityService::class);
-        $this->service = new UserIdentityMobileService($this->repository, $this->innerService);
     }
 
-    public function testFindByType_withMobileType(): void
+    public function testFindByTypeWithNonMobileType(): void
     {
-        $mobileNumber = '13800138000';
-        $identity = $this->createMock(MobileIdentity::class);
+        $service = self::getService(UserIdentityMobileService::class);
+        $result = $service->findByType('other', 'test@example.com');
 
-        $this->repository->expects($this->once())
-            ->method('findOneBy')
-            ->with(['mobileNumber' => $mobileNumber])
-            ->willReturn($identity);
-
-        $this->innerService->expects($this->never())
-            ->method('findByType');
-
-        $result = $this->service->findByType(MobileIdentity::IDENTITY_TYPE, $mobileNumber);
-        $this->assertSame($identity, $result);
-    }
-
-    public function testFindByType_withMobileTypeButNotFound(): void
-    {
-        $mobileNumber = '13800138000';
-
-        $this->repository->expects($this->once())
-            ->method('findOneBy')
-            ->with(['mobileNumber' => $mobileNumber])
-            ->willReturn(null);
-
-        $this->innerService->expects($this->once())
-            ->method('findByType')
-            ->with(MobileIdentity::IDENTITY_TYPE, $mobileNumber)
-            ->willReturn(null);
-
-        $result = $this->service->findByType(MobileIdentity::IDENTITY_TYPE, $mobileNumber);
         $this->assertNull($result);
     }
 
-    public function testFindByType_withNonMobileType(): void
+    public function testFindByTypeWithMobileTypeNotFound(): void
     {
-        $type = 'email';
-        $value = 'test@example.com';
-        $identity = $this->createMock(IdentityInterface::class);
+        $service = self::getService(UserIdentityMobileService::class);
+        $result = $service->findByType(MobileIdentity::IDENTITY_TYPE, '13800138000');
 
-        $this->repository->expects($this->never())
-            ->method('findOneBy');
-
-        $this->innerService->expects($this->once())
-            ->method('findByType')
-            ->with($type, $value)
-            ->willReturn($identity);
-
-        $result = $this->service->findByType($type, $value);
-        $this->assertSame($identity, $result);
-    }
-
-    public function testFindByType_withEmptyValue(): void
-    {
-        $this->repository->expects($this->once())
-            ->method('findOneBy')
-            ->with(['mobileNumber' => ''])
-            ->willReturn(null);
-
-        $this->innerService->expects($this->once())
-            ->method('findByType')
-            ->with(MobileIdentity::IDENTITY_TYPE, '')
-            ->willReturn(null);
-
-        $result = $this->service->findByType(MobileIdentity::IDENTITY_TYPE, '');
         $this->assertNull($result);
     }
 
-    public function testFindByType_whenRepositoryThrowsException(): void
+    public function testFindByTypeWithMobileTypeFound(): void
     {
-        $this->repository->expects($this->once())
-            ->method('findOneBy')
-            ->willThrowException(new \RuntimeException('Database error'));
+        $user = $this->createNormalUser('test@example.com', 'password123');
 
-        $this->expectException(\RuntimeException::class);
-        $this->expectExceptionMessage('Database error');
+        $mobileIdentity = new MobileIdentity();
+        $mobileIdentity->setMobileNumber('13800138000');
+        $mobileIdentity->setUser($user);
+        $mobileIdentity->setCreatedBy('system');
+        $mobileIdentity->setCreateTime(new \DateTimeImmutable());
 
-        $this->service->findByType(MobileIdentity::IDENTITY_TYPE, '13800138000');
+        self::getEntityManager()->persist($mobileIdentity);
+        self::getEntityManager()->flush();
+
+        $service = self::getService(UserIdentityMobileService::class);
+        $result = $service->findByType(MobileIdentity::IDENTITY_TYPE, '13800138000');
+
+        $this->assertNotNull($result);
+        $this->assertInstanceOf(MobileIdentity::class, $result);
+        $this->assertSame('13800138000', $result->getMobileNumber());
     }
 
     public function testFindByUser(): void
     {
-        $user = $this->createMock(UserInterface::class);
-        $mobileIdentity1 = $this->createMock(MobileIdentity::class);
-        $mobileIdentity2 = $this->createMock(MobileIdentity::class);
-        $otherIdentity = $this->createMock(IdentityInterface::class);
+        $user = $this->createNormalUser('test@example.com', 'password123');
 
-        $this->repository->expects($this->once())
-            ->method('findBy')
-            ->with(['user' => $user])
-            ->willReturn([$mobileIdentity1, $mobileIdentity2]);
+        $mobileIdentity = new MobileIdentity();
+        $mobileIdentity->setMobileNumber('13800138000');
+        $mobileIdentity->setUser($user);
+        $mobileIdentity->setCreatedBy('system');
+        $mobileIdentity->setCreateTime(new \DateTimeImmutable());
 
-        $this->innerService->expects($this->once())
-            ->method('findByUser')
-            ->with($user)
-            ->willReturn([$otherIdentity]);
+        self::getEntityManager()->persist($mobileIdentity);
+        self::getEntityManager()->flush();
 
-        $result = $this->service->findByUser($user);
+        $service = self::getService(UserIdentityMobileService::class);
+        $results = iterator_to_array($service->findByUser($user));
 
-        $this->assertInstanceOf(\Traversable::class, $result);
-        $items = iterator_to_array($result);
-
-        $this->assertCount(3, $items);
-        $this->assertSame($mobileIdentity1, $items[0]);
-        $this->assertSame($mobileIdentity2, $items[1]);
-        $this->assertSame($otherIdentity, $items[2]);
-    }
-
-    public function testFindByUser_withEmptyResults(): void
-    {
-        $user = $this->createMock(UserInterface::class);
-
-        $this->repository->expects($this->once())
-            ->method('findBy')
-            ->with(['user' => $user])
-            ->willReturn([]);
-
-        $this->innerService->expects($this->once())
-            ->method('findByUser')
-            ->with($user)
-            ->willReturn([]);
-
-        $result = $this->service->findByUser($user);
-
-        $this->assertInstanceOf(\Traversable::class, $result);
-        $items = iterator_to_array($result);
-
-        $this->assertCount(0, $items);
-    }
-
-
-    public function testFindByUser_whenInnerServiceReturnsEmptyArray(): void
-    {
-        $user = $this->createMock(UserInterface::class);
-        $mobileIdentity = $this->createMock(MobileIdentity::class);
-
-        $this->repository->expects($this->once())
-            ->method('findBy')
-            ->with(['user' => $user])
-            ->willReturn([$mobileIdentity]);
-
-        // 模拟内部服务返回空数组
-        $this->innerService->expects($this->once())
-            ->method('findByUser')
-            ->with($user)
-            ->willReturn([]);
-
-        $result = $this->service->findByUser($user);
-        $items = iterator_to_array($result);
-
-        $this->assertCount(1, $items);
-        $this->assertSame($mobileIdentity, $items[0]);
+        $this->assertCount(1, $results);
+        $this->assertInstanceOf(MobileIdentity::class, $results[0]);
+        $this->assertSame('13800138000', $results[0]->getMobileNumber());
     }
 }

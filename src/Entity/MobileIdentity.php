@@ -2,9 +2,9 @@
 
 namespace Tourze\UserIDMobileBundle\Entity;
 
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Validator\Constraints as Assert;
 use Tourze\DoctrineSnowflakeBundle\Traits\SnowflakeKeyAware;
 use Tourze\DoctrineTimestampBundle\Traits\TimestampableAware;
 use Tourze\DoctrineUserBundle\Traits\BlameableAware;
@@ -22,9 +22,19 @@ class MobileIdentity implements IdentityInterface, \Stringable
     public const IDENTITY_TYPE = 'mobile';
 
     #[ORM\Column(length: 20, nullable: false, options: ['comment' => '手机号码'])]
+    #[Assert\NotBlank(message: '手机号码不能为空')]
+    #[Assert\Length(
+        max: 20,
+        maxMessage: '手机号码长度不能超过 {{ limit }} 个字符'
+    )]
+    #[Assert\Regex(
+        pattern: '/^[1-9]\d{10}$/',
+        message: '请输入有效的中国大陆手机号码'
+    )]
     private string $mobileNumber;
 
-    #[ORM\ManyToOne]
+    #[ORM\ManyToOne(targetEntity: UserInterface::class)]
+    #[ORM\JoinColumn(name: 'user_id', nullable: true, onDelete: 'SET NULL')]
     private ?UserInterface $user = null;
 
     public function __toString(): string
@@ -37,11 +47,9 @@ class MobileIdentity implements IdentityInterface, \Stringable
         return $this->mobileNumber;
     }
 
-    public function setMobileNumber(string $mobileNumber): static
+    public function setMobileNumber(string $mobileNumber): void
     {
         $this->mobileNumber = $mobileNumber;
-
-        return $this;
     }
 
     public function getUser(): ?UserInterface
@@ -49,12 +57,12 @@ class MobileIdentity implements IdentityInterface, \Stringable
         return $this->user;
     }
 
-    public function setUser(?UserInterface $user): static
+    public function setUser(?UserInterface $user): void
     {
         $this->user = $user;
+    }
 
-        return $this;
-    }public function getIdentityValue(): string
+    public function getIdentityValue(): string
     {
         return $this->getMobileNumber();
     }
@@ -64,9 +72,12 @@ class MobileIdentity implements IdentityInterface, \Stringable
         return self::IDENTITY_TYPE;
     }
 
+    /**
+     * @return \Generator<Identity>
+     */
     public function getIdentityArray(): \Traversable
     {
-        yield new Identity($this->getId(), $this->getIdentityType(), $this->getIdentityValue(), [
+        yield new Identity((string) $this->getId(), $this->getIdentityType(), $this->getIdentityValue(), [
             'createTime' => $this->getCreateTime()?->format('Y-m-d H:i:s'),
             'updateTime' => $this->getUpdateTime()?->format('Y-m-d H:i:s'),
         ]);

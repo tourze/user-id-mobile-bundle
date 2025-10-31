@@ -2,14 +2,33 @@
 
 namespace Tourze\UserIDMobileBundle\Tests\Entity;
 
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Tourze\PHPUnitDoctrineEntity\AbstractEntityTestCase;
 use Tourze\UserIDBundle\Model\Identity;
 use Tourze\UserIDMobileBundle\Entity\MobileIdentity;
 
-class MobileIdentityTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(MobileIdentity::class)]
+final class MobileIdentityTest extends AbstractEntityTestCase
 {
-    public function testGetId_initialValueIsNull(): void
+    protected function createEntity(): object
+    {
+        return new MobileIdentity();
+    }
+
+    /**
+     * @return iterable<string, array{string, mixed}>
+     */
+    public static function propertiesProvider(): iterable
+    {
+        yield 'mobileNumber' => ['mobileNumber', 'test_value'];
+    }
+
+    public function testGetIdInitialValueIsNull(): void
     {
         $entity = new MobileIdentity();
         $this->assertNull($entity->getId());
@@ -20,11 +39,11 @@ class MobileIdentityTest extends TestCase
         $entity = new MobileIdentity();
         $mobileNumber = '13800138000';
 
-        $this->assertSame($entity, $entity->setMobileNumber($mobileNumber));
+        $entity->setMobileNumber($mobileNumber);
         $this->assertSame($mobileNumber, $entity->getMobileNumber());
     }
 
-    public function testGetSetMobileNumber_withEmptyString(): void
+    public function testGetSetMobileNumberWithEmptyString(): void
     {
         $entity = new MobileIdentity();
         $entity->setMobileNumber('');
@@ -37,11 +56,11 @@ class MobileIdentityTest extends TestCase
         $entity = new MobileIdentity();
         $user = $this->createMock(UserInterface::class);
 
-        $this->assertSame($entity, $entity->setUser($user));
+        $entity->setUser($user);
         $this->assertSame($user, $entity->getUser());
 
         // 测试 null 值
-        $this->assertSame($entity, $entity->setUser(null));
+        $entity->setUser(null);
         $this->assertNull($entity->getUser());
     }
 
@@ -50,11 +69,11 @@ class MobileIdentityTest extends TestCase
         $entity = new MobileIdentity();
         $createdBy = 'user1';
 
-        $this->assertSame($entity, $entity->setCreatedBy($createdBy));
+        $entity->setCreatedBy($createdBy);
         $this->assertSame($createdBy, $entity->getCreatedBy());
 
         // 测试 null 值
-        $this->assertSame($entity, $entity->setCreatedBy(null));
+        $entity->setCreatedBy(null);
         $this->assertNull($entity->getCreatedBy());
     }
 
@@ -63,11 +82,11 @@ class MobileIdentityTest extends TestCase
         $entity = new MobileIdentity();
         $updatedBy = 'user1';
 
-        $this->assertSame($entity, $entity->setUpdatedBy($updatedBy));
+        $entity->setUpdatedBy($updatedBy);
         $this->assertSame($updatedBy, $entity->getUpdatedBy());
 
         // 测试 null 值
-        $this->assertSame($entity, $entity->setUpdatedBy(null));
+        $entity->setUpdatedBy(null);
         $this->assertNull($entity->getUpdatedBy());
     }
 
@@ -113,11 +132,41 @@ class MobileIdentityTest extends TestCase
         $this->assertSame('mobile', $entity->getIdentityType());
     }
 
-
     public function testGetAccounts(): void
     {
         $entity = new MobileIdentity();
-        // 已知返回数组，不需要断言
-        $this->assertEmpty($entity->getAccounts());
+        $accounts = $entity->getAccounts();
+        $this->assertIsArray($accounts);
+        $this->assertEmpty($accounts);
     }
-} 
+
+    public function testGetIdentityArray(): void
+    {
+        $entity = new MobileIdentity();
+        $entity->setMobileNumber('13800138000');
+        // 手动设置ID，因为这是一个单元测试
+        $reflectionClass = new \ReflectionClass($entity);
+        $idProperty = $reflectionClass->getProperty('id');
+        $idProperty->setValue($entity, '123456789');
+
+        $identities = iterator_to_array($entity->getIdentityArray());
+        $this->assertCount(1, $identities);
+
+        $identity = $identities[0];
+        $this->assertEquals('123456789', $identity->getId());
+        $this->assertEquals('mobile', $identity->getIdentityType());
+        $this->assertEquals('13800138000', $identity->getIdentityValue());
+    }
+
+    public function testToString(): void
+    {
+        $entity = new MobileIdentity();
+
+        // 测试空的手机号码
+        $this->assertSame('', (string) $entity);
+
+        // 测试有手机号码
+        $entity->setMobileNumber('13800138000');
+        $this->assertSame('13800138000', (string) $entity);
+    }
+}

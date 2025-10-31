@@ -2,20 +2,45 @@
 
 namespace Tourze\UserIDMobileBundle\Tests\DependencyInjection;
 
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Tourze\PHPUnitSymfonyUnitTest\AbstractDependencyInjectionExtensionTestCase;
 use Tourze\UserIDMobileBundle\DependencyInjection\UserIDMobileExtension;
 
-class UserIDMobileExtensionTest extends TestCase
+/**
+ * @internal
+ */
+#[CoversClass(UserIDMobileExtension::class)]
+final class UserIDMobileExtensionTest extends AbstractDependencyInjectionExtensionTestCase
 {
+    private UserIDMobileExtension $extension;
+
+    private ContainerBuilder $container;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->extension = new UserIDMobileExtension();
+        $this->container = new ContainerBuilder();
+        $this->container->setParameter('kernel.environment', 'test');
+    }
+
+    protected function getExtension(): UserIDMobileExtension
+    {
+        return $this->extension;
+    }
+
+    protected function getContainer(): ContainerBuilder
+    {
+        return $this->container;
+    }
+
     public function testLoad(): void
     {
-        $container = new ContainerBuilder();
-        $extension = new UserIDMobileExtension();
-        
-        $extension->load([], $container);
-        
-        $this->assertTrue($container->hasDefinition('Tourze\UserIDMobileBundle\Repository\MobileIdentityRepository'));
-        $this->assertTrue($container->hasDefinition('Tourze\UserIDMobileBundle\Service\UserIdentityMobileService'));
+        $this->extension->load([], $this->container);
+
+        $this->assertTrue($this->container->hasDefinition('Tourze\UserIDMobileBundle\Repository\MobileIdentityRepository'));
+        $this->assertTrue($this->container->hasDefinition('Tourze\UserIDMobileBundle\Service\UserIdentityMobileService'));
     }
-} 
+}
