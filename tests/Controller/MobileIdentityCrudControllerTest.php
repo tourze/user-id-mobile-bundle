@@ -56,7 +56,7 @@ final class MobileIdentityCrudControllerTest extends AbstractEasyAdminController
         yield 'user' => ['user'];
     }
 
-    protected function onSetUp(): void
+    protected function afterEasyAdminSetUp(): void
     {
     }
 
