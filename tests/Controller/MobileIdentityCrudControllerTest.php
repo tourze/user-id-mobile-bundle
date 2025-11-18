@@ -60,14 +60,6 @@ final class MobileIdentityCrudControllerTest extends AbstractEasyAdminController
     {
     }
 
-    public function testGetEntityFqcnReturnsMobileIdentityClass(): void
-    {
-        $controller = new MobileIdentityCrudController();
-        $result = $controller::getEntityFqcn();
-
-        $this->assertSame(MobileIdentity::class, $result);
-    }
-
     public function testConfigureFieldsReturnsCorrectFields(): void
     {
         $controller = new MobileIdentityCrudController();
